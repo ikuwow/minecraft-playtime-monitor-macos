@@ -6,8 +6,9 @@
     <string>com.ikuwow.minecraft-playtime-monitor</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
-        <string>/Users/USERNAME/.local/bin/minecraft_playtime_monitor.py</string>
+        <string>/bin/sh</string>
+        <string>-c</string>
+        <string>exec "$HOME/.local/bin/minecraft_playtime_monitor.py"</string>
     </array>
     <key>StartInterval</key>
     <integer>60</integer>
