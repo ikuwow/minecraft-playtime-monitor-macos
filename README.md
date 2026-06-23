@@ -34,13 +34,14 @@ below point back to it), then from the cloned directory:
 
 ```
 mkdir -p ~/.local/bin ~/Library/LaunchAgents
-ln -s "$PWD/minecraft_playtime_monitor.py" ~/.local/bin/
-ln -s "$PWD/com.ikuwow.minecraft-playtime-monitor.plist" ~/Library/LaunchAgents/
+ln -sfn "$PWD/minecraft_playtime_monitor.py" ~/.local/bin/minecraft_playtime_monitor.py
+ln -sfn "$PWD/com.ikuwow.minecraft-playtime-monitor.plist" ~/Library/LaunchAgents/com.ikuwow.minecraft-playtime-monitor.plist
 launchctl load ~/Library/LaunchAgents/com.ikuwow.minecraft-playtime-monitor.plist
 ```
 
 The plist resolves `$HOME` at launch time, so no per-user
-substitution is needed.
+substitution is needed. The `ln -sfn` form lets the same commands
+be re-run if the clone moves.
 
 ## Update
 
@@ -49,7 +50,8 @@ git pull
 ```
 
 The Python script is loaded via the symlink and re-read on every
-launchd invocation, so `git pull` is enough for script-only changes.
+launchd invocation, so `git pull` is enough for script-only changes
+(see the Configure section if you have local edits to the script).
 If the plist itself changed, also reload it:
 
 ```
@@ -68,7 +70,7 @@ pgrep -fl java.*minecraft
 Run the script manually and check state:
 
 ```
-python3 ~/.local/bin/minecraft_playtime_monitor.py
+~/.local/bin/minecraft_playtime_monitor.py
 cat ~/.local/share/minecraft-playtime-monitor/state.json
 ```
 
@@ -77,10 +79,27 @@ Errors are appended to `~/.local/share/minecraft-playtime-monitor/monitor.log`.
 
 ## Configure
 
-Edit the constants at the top of `~/.local/bin/minecraft_playtime_monitor.py`:
-per-weekday limits, curfew hour, notification thresholds, and the
-process pattern. No launchd reload needed — the script re-reads the
-file on every invocation.
+Edit the constants at the top of `minecraft_playtime_monitor.py`
+(either through the symlink at `~/.local/bin/minecraft_playtime_monitor.py`
+or directly in the clone — both point to the same file): per-weekday
+limits, curfew hour, notification thresholds, and the process pattern.
+No launchd reload needed — the script re-reads the file on every
+invocation.
+
+Because the install symlinks back into the clone, local edits show up
+as modifications to the tracked file and will conflict with `git pull`.
+To keep your local config without committing it, mark the file as
+skipped from the index:
+
+```
+git update-index --skip-worktree minecraft_playtime_monitor.py
+```
+
+To undo:
+
+```
+git update-index --no-skip-worktree minecraft_playtime_monitor.py
+```
 
 ## Uninstall
 
