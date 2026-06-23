@@ -15,16 +15,17 @@ from pathlib import Path
 
 # ---- Configuration (edit as needed) ----
 WEEKLY_LIMITS = {
-    "monday": 60,
-    "tuesday": 60,
-    "wednesday": 60,
-    "thursday": 60,
-    "friday": 60,
-    "saturday": 180,
-    "sunday": 180,
+    "monday": 90,
+    "tuesday": 90,
+    "wednesday": 90,
+    "thursday": 90,
+    "friday": 90,
+    "saturday": 120,
+    "sunday": 120,
 }
 CURFEW_HOUR = 22
 NOTIFY_REMAINING_MINUTES = [60, 10, 5, 1]
+NOTIFY_REPEAT_INTERVAL = 10
 PROCESS_PATTERN = "java.*minecraft"
 # ----------------------------------------
 
@@ -47,8 +48,8 @@ def new_state(today):
         "date": today,
         "accumulated_minutes": 0,
         "notified_remaining": [],
-        "notified_curfew": False,
-        "notified_over_limit": False,
+        "last_curfew_notify_minute": None,
+        "last_over_limit_notify_minute": None,
     }
 
 
@@ -104,17 +105,21 @@ def main():
     daily_limit = WEEKLY_LIMITS[weekday_key]
     remaining = daily_limit - elapsed
 
-    if now.hour >= CURFEW_HOUR and not state["notified_curfew"]:
-        notify("Minecraft", f"It's past {CURFEW_HOUR}:00. Time to wrap up.")
-        state["notified_curfew"] = True
-        save_state(state)
-        return
+    if now.hour >= CURFEW_HOUR:
+        last = state.get("last_curfew_notify_minute")
+        if last is None or elapsed - last >= NOTIFY_REPEAT_INTERVAL:
+            notify("Minecraft", f"It's past {CURFEW_HOUR}:00. Time to wrap up.")
+            state["last_curfew_notify_minute"] = elapsed
+            save_state(state)
+            return
 
-    if remaining <= 0 and not state["notified_over_limit"]:
-        notify("Minecraft", f"Today's {daily_limit}-minute limit is up. Find a good stopping point.")
-        state["notified_over_limit"] = True
-        save_state(state)
-        return
+    if remaining <= 0:
+        last = state.get("last_over_limit_notify_minute")
+        if last is None or elapsed - last >= NOTIFY_REPEAT_INTERVAL:
+            notify("Minecraft", f"Today's {daily_limit}-minute limit is up. Find a good stopping point.")
+            state["last_over_limit_notify_minute"] = elapsed
+            save_state(state)
+            return
 
     for n in NOTIFY_REMAINING_MINUTES:
         if remaining == n and n not in state["notified_remaining"]:
