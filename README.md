@@ -29,13 +29,32 @@ launchd wakes the script every minute and the script:
 
 ## Install
 
+Clone the repository somewhere you keep it long-term (the symlinks
+below point back to it), then from the cloned directory:
+
 ```
-mkdir -p ~/.local/bin
-cp minecraft_playtime_monitor.py ~/.local/bin/
-chmod +x ~/.local/bin/minecraft_playtime_monitor.py
-cp com.ikuwow.minecraft-playtime-monitor.plist ~/Library/LaunchAgents/
-sed -i '' "s|USERNAME|$(whoami)|g" ~/Library/LaunchAgents/com.ikuwow.minecraft-playtime-monitor.plist
+mkdir -p ~/.local/bin ~/Library/LaunchAgents
+ln -s "$PWD/minecraft_playtime_monitor.py" ~/.local/bin/
+ln -s "$PWD/com.ikuwow.minecraft-playtime-monitor.plist" ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.ikuwow.minecraft-playtime-monitor.plist
+```
+
+The plist resolves `$HOME` at launch time, so no per-user
+substitution is needed.
+
+## Update
+
+```
+git pull
+```
+
+The Python script is loaded via the symlink and re-read on every
+launchd invocation, so `git pull` is enough for script-only changes.
+If the plist itself changed, also reload it:
+
+```
+launchctl unload ~/Library/LaunchAgents/com.ikuwow.minecraft-playtime-monitor.plist
+launchctl load   ~/Library/LaunchAgents/com.ikuwow.minecraft-playtime-monitor.plist
 ```
 
 ## Verify
