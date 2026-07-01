@@ -8,7 +8,7 @@
     <array>
         <string>/bin/sh</string>
         <string>-c</string>
-        <string>exec "$HOME/.local/bin/minecraft_playtime_monitor.py"</string>
+        <string>exec "$HOME/.local/bin/minecraft_playtime_monitor.py" --weekly-limits 90,90,90,90,90,120,120 --curfew-hour 22 --notify-remaining 60,10,5,1 --notify-repeat-interval 10 --process-pattern "java.*minecraft"</string>
     </array>
     <key>StartInterval</key>
     <integer>60</integer>

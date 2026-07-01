@@ -10,22 +10,27 @@ script fills that gap.
 
 ## Components
 
-- `minecraft_playtime_monitor.py` — the monitor script. Settings live at
-  the top of the file
+- `minecraft_playtime_monitor.py` — the monitor script. All settings
+  are CLI arguments (`--help` lists them); defaults match the values
+  passed by the bundled plist
 - `com.ikuwow.minecraft-playtime-monitor.plist` — launchd agent
-  definition
+  definition; passes the settings to the script via
+  `ProgramArguments`
 - State and logs are written to `~/.local/share/minecraft-playtime-monitor/`
 
 ## How it works
 
 launchd wakes the script every minute and the script:
 
-- checks for the Minecraft process with `pgrep -f java.*minecraft`
+- checks for the Minecraft process with `pgrep -f <pattern>`
+  (`--process-pattern`, default `java.*minecraft`)
 - if running, adds 1 minute to today's accumulated time
 - notifies once when the remaining time matches a threshold
-  (`NOTIFY_REMAINING_MINUTES`)
-- notifies once per day when the curfew hour is reached
-- notifies once per day when the daily limit is exceeded
+  (`--notify-remaining`)
+- notifies every `--notify-repeat-interval` minutes once the curfew
+  hour is reached
+- notifies every `--notify-repeat-interval` minutes once the daily
+  limit is exceeded, including elapsed and over-limit minutes
 
 ## Install
 
@@ -51,7 +56,7 @@ git pull
 
 The Python script is loaded via the symlink and re-read on every
 launchd invocation, so `git pull` is enough for script-only changes
-(see the Configure section if you have local edits to the script).
+(see the Configure section if you have local edits to the plist).
 If the plist itself changed, also reload it:
 
 ```
@@ -79,26 +84,45 @@ Errors are appended to `~/.local/share/minecraft-playtime-monitor/monitor.log`.
 
 ## Configure
 
-Edit the constants at the top of `minecraft_playtime_monitor.py`
-(either through the symlink at `~/.local/bin/minecraft_playtime_monitor.py`
-or directly in the clone — both point to the same file): per-weekday
-limits, curfew hour, notification thresholds, and the process pattern.
-No launchd reload needed — the script re-reads the file on every
-invocation.
+Settings are passed to the script as CLI arguments from the plist's
+`ProgramArguments`. Run
+`~/.local/bin/minecraft_playtime_monitor.py --help` for the full list.
+The available flags are:
 
-Because the install symlinks back into the clone, local edits show up
-as modifications to the tracked file and will conflict with `git pull`.
-To keep your local config without committing it, mark the file as
-skipped from the index:
+- `--weekly-limits MON,TUE,WED,THU,FRI,SAT,SUN` — daily limits in
+  minutes (default `90,90,90,90,90,120,120`)
+- `--curfew-hour H` — hour (0-23) after which a curfew notification
+  fires (default `22`)
+- `--notify-remaining N,N,...` — remaining-minute thresholds for the
+  one-shot notification (default `60,10,5,1`)
+- `--notify-repeat-interval N` — minutes between repeated curfew and
+  over-limit notifications (default `10`)
+- `--process-pattern REGEX` — `pgrep -f` pattern to detect the
+  Minecraft process (default `java.*minecraft`)
+
+To change values, edit the `ProgramArguments` block in
+`com.ikuwow.minecraft-playtime-monitor.plist` (either through the
+symlink at `~/Library/LaunchAgents/...` or directly in the clone —
+both point to the same file), then reload the agent:
 
 ```
-git update-index --skip-worktree minecraft_playtime_monitor.py
+launchctl unload ~/Library/LaunchAgents/com.ikuwow.minecraft-playtime-monitor.plist
+launchctl load   ~/Library/LaunchAgents/com.ikuwow.minecraft-playtime-monitor.plist
+```
+
+Because the install symlinks back into the clone, local edits to the
+plist show up as modifications to the tracked file and will conflict
+with `git pull`. To keep your local config without committing it,
+mark the file as skipped from the index:
+
+```
+git update-index --skip-worktree com.ikuwow.minecraft-playtime-monitor.plist
 ```
 
 To undo:
 
 ```
-git update-index --no-skip-worktree minecraft_playtime_monitor.py
+git update-index --no-skip-worktree com.ikuwow.minecraft-playtime-monitor.plist
 ```
 
 ## Uninstall
