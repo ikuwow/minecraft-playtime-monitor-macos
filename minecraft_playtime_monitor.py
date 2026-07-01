@@ -60,14 +60,14 @@ def parse_args(argv=None):
         type=parse_weekly_limits,
         default=parse_weekly_limits("90,90,90,90,90,120,120"),
         metavar="MON,TUE,WED,THU,FRI,SAT,SUN",
-        help="Daily limits in minutes, comma-separated for Mon..Sun.",
+        help="Seven non-negative daily limits in minutes, comma-separated as Mon..Sun.",
     )
     parser.add_argument(
         "--curfew-hour",
         type=int,
         default=22,
         metavar="H",
-        help="Hour (0-23) after which a curfew notification fires.",
+        help="Hour (0-23) at or after which a curfew notification fires.",
     )
     parser.add_argument(
         "--notify-remaining",
@@ -81,7 +81,7 @@ def parse_args(argv=None):
         type=int,
         default=10,
         metavar="N",
-        help="Minutes between repeated curfew / over-limit notifications.",
+        help="Playtime minutes between repeated curfew / over-limit notifications.",
     )
     parser.add_argument(
         "--process-pattern",
@@ -196,8 +196,6 @@ def main(argv=None):
 if __name__ == "__main__":
     try:
         main()
-    except SystemExit:
-        raise
     except Exception:
         try:
             ensure_data_dir()

@@ -27,10 +27,11 @@ launchd wakes the script every minute and the script:
 - if running, adds 1 minute to today's accumulated time
 - notifies once when the remaining time matches a threshold
   (`--notify-remaining`)
-- notifies every `--notify-repeat-interval` minutes once the curfew
-  hour is reached
-- notifies every `--notify-repeat-interval` minutes once the daily
-  limit is exceeded, including elapsed and over-limit minutes
+- once the curfew hour is reached, notifies again every
+  `--notify-repeat-interval` accumulated playtime minutes
+- once the daily limit is exceeded, notifies again every
+  `--notify-repeat-interval` accumulated playtime minutes, including
+  elapsed and over-limit minutes
 
 ## Install
 
@@ -91,12 +92,12 @@ The available flags are:
 
 - `--weekly-limits MON,TUE,WED,THU,FRI,SAT,SUN` — daily limits in
   minutes (default `90,90,90,90,90,120,120`)
-- `--curfew-hour H` — hour (0-23) after which a curfew notification
-  fires (default `22`)
+- `--curfew-hour H` — hour (0-23) at or after which a curfew
+  notification fires (default `22`)
 - `--notify-remaining N,N,...` — remaining-minute thresholds for the
   one-shot notification (default `60,10,5,1`)
-- `--notify-repeat-interval N` — minutes between repeated curfew and
-  over-limit notifications (default `10`)
+- `--notify-repeat-interval N` — playtime minutes between repeated
+  curfew and over-limit notifications (default `10`)
 - `--process-pattern REGEX` — `pgrep -f` pattern to detect the
   Minecraft process (default `java.*minecraft`)
 
